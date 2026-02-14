@@ -1,0 +1,5 @@
+flask
+langchain
+langchain-chroma
+langchain-ollama
+PyPDF2
