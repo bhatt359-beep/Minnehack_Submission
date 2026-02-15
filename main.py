@@ -71,9 +71,40 @@ def test():
     ai_msg = llm.invoke(messages)
     
     return jsonify({
-        "response": ai_msg.content
+        "response": ai_msg.content[0]["text"]
     })
         
+@app.route("/<user_prompt>")
+def run_prompt(user_prompt):
+    retrieved_docs = vector_store.similarity_search(user_prompt)
+
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-3-pro-preview",
+        temperature=1.0,  # Gemini 3.0+ defaults to 1.0
+        max_tokens=None,
+        timeout=None,
+        max_retries=2,
+        # other params...
+    )
+    
+    context = ""
+
+    for i in range(len(retrieved_docs)):
+        context += f"Context {i}: \n " + retrieved_docs[i].page_content + "\n_____________________\n"
+
+    messages = [
+        (
+            "system",
+            "You are a helpful assistant that teaches users how to use their GX Refrigerator.",
+        ),
+        ("human", context + "\n_____________________\n" + user_prompt),
+    ]
+    
+    ai_msg = llm.invoke(messages)
+    
+    return jsonify({
+        "response": ai_msg.content[0]["text"]
+    })
 
 
 if __name__ == '__main__':
