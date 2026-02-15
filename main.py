@@ -18,7 +18,7 @@ raw_file_content = requests.get("https://www.helmerinc.com/sites/default/files/2
 file_path = './manual.pdf'
 
 if not os.path.exists(file_path):
-    with open("manual.pdf", "wb") as f:
+    with open(file_path, "wb") as f:
         f.write(raw_file_content)
 
 file_text = pdf_loader.get_pdf_text(file_path)
