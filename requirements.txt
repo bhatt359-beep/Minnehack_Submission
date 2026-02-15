@@ -1,4 +1,7 @@
+gunicorn
 flask
+Flask-SQLAlchemy 
+SQLAlchemy 
 langchain
 langchain-chroma
 langchain-ollama
@@ -6,3 +9,4 @@ langchain-core
 langchain-google-genai 
 PyPDF2
 tqdm
+python-dotenv

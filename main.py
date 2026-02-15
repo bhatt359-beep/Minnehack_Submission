@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+gemini_key = os.getenv("GEMINI_API_KEY")
 
 file_path = './manual.pdf'
 
@@ -112,7 +113,7 @@ def diagnose_issue():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=False, port=5001)
 
 
 
