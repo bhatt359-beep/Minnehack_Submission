@@ -2,4 +2,7 @@ flask
 langchain
 langchain-chroma
 langchain-ollama
+langchain-core 
+langchain-google-genai 
 PyPDF2
+tqdm
