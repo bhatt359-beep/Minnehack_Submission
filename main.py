@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, request
 from langchain_ollama import OllamaEmbeddings
-from langchain_ollama import ChatOllama
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from tqdm import tqdm
@@ -46,13 +46,15 @@ def test():
 
     retrieved_docs = vector_store.similarity_search(user_prompt)
 
-    ollama_model = "qwen2.5"
-
-    llm = ChatOllama(
-        model=ollama_model,
-        temperature=0.7,
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-3-pro-preview",
+        temperature=1.0,  # Gemini 3.0+ defaults to 1.0
+        max_tokens=None,
+        timeout=None,
+        max_retries=2,
+        # other params...
     )
-
+    
     context = ""
 
     for i in range(len(retrieved_docs)):
