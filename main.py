@@ -1,4 +1,6 @@
 from flask import Flask, render_template, jsonify, request
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from langchain_ollama import OllamaEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_chroma import Chroma
@@ -10,8 +12,6 @@ import os
 
 
 app = Flask(__name__)
-
-# Step 1: Create Vector Database
 
 raw_file_content = requests.get("https://www.helmerinc.com/sites/default/files/2026-01/Manual%20-%20GX%20Refrigerator%20IFU%20360414-E.pdf").content
 
@@ -40,58 +40,24 @@ persist_dir = "chroma_db"
 vector_store = Chroma.from_documents(documents, embeddings)
 app.logger.info("Vector Store Set Up")
 
+llm = ChatGoogleGenerativeAI(
+        model="gemini-3-pro-preview",
+        temperature=1.0,  # Gemini 3.0+ defaults to 1.0
+        max_tokens=None,
+        timeout=None,
+        max_retries=2,
+        # other params...
+    )
+
 @app.route("/")
 def base():
     return jsonify({
         "message": "It fucking works"
     })
-
-@app.route("/test")
-def test():
-    user_prompt = "What should I do to avoid an injury?"
-
-    retrieved_docs = vector_store.similarity_search(user_prompt)
-
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-3-pro-preview",
-        temperature=1.0,  # Gemini 3.0+ defaults to 1.0
-        max_tokens=None,
-        timeout=None,
-        max_retries=2,
-        # other params...
-    )
-    
-    context = ""
-
-    for i in range(len(retrieved_docs)):
-        context += f"Context {i}: \n " + retrieved_docs[i].page_content + "\n_____________________\n"
-
-    messages = [
-        (
-            "system",
-            "You are a helpful assistant that teaches users how to use their GX Refrigerator.",
-        ),
-        ("human", context + "\n_____________________\n" + user_prompt),
-    ]
-    
-    ai_msg = llm.invoke(messages)
-    
-    return jsonify({
-        "response": ai_msg.content[0]["text"]
-    })
         
 @app.route("/api/<user_prompt>")
 def run_prompt(user_prompt):
     retrieved_docs = vector_store.similarity_search(user_prompt)
-
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-3-pro-preview",
-        temperature=1.0,  # Gemini 3.0+ defaults to 1.0
-        max_tokens=None,
-        timeout=None,
-        max_retries=2,
-        # other params...
-    )
     
     context = ""
 
