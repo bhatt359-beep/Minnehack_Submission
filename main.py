@@ -40,6 +40,12 @@ persist_dir = "chroma_db"
 vector_store = Chroma.from_documents(documents, embeddings)
 app.logger.info("Vector Store Set Up")
 
+@app.route("/")
+def base():
+    return jsonify({
+        "message": "It fucking works"
+    })
+
 @app.route("/test")
 def test():
     user_prompt = "What should I do to avoid an injury?"
@@ -74,7 +80,7 @@ def test():
         "response": ai_msg.content[0]["text"]
     })
         
-@app.route("/<user_prompt>")
+@app.route("/api/<user_prompt>")
 def run_prompt(user_prompt):
     retrieved_docs = vector_store.similarity_search(user_prompt)
 
