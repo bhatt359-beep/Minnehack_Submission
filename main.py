@@ -9,15 +9,20 @@ from tqdm import tqdm
 import pdf_loader
 import requests
 import os
+import base64
+from langchain_core.messages import HumanMessage
+from dotenv import load_dotenv
 
+
+
+load_dotenv()
 
 app = Flask(__name__)
-
-raw_file_content = requests.get("https://www.helmerinc.com/sites/default/files/2026-01/Manual%20-%20GX%20Refrigerator%20IFU%20360414-E.pdf").content
 
 file_path = './manual.pdf'
 
 if not os.path.exists(file_path):
+    raw_file_content = requests.get("https://www.helmerinc.com/sites/default/files/2026-01/Manual%20-%20GX%20Refrigerator%20IFU%20360414-E.pdf").content
     with open(file_path, "wb") as f:
         f.write(raw_file_content)
 
@@ -79,8 +84,35 @@ def run_prompt(user_prompt):
     })
 
 
+@app.route("/api/diagnose", methods=["POST"])
+def diagnose_issue():
+    appliance_type = request.form.get("appliance_type")
+    user_prompt = request.form.get("user_prompt")
+    image_file = request.files.get("image")
+
+    if not image_file:
+         return jsonify({"error": "No image provided"}), 400
+
+    image_content = image_file.read()
+    image_b64 = base64.b64encode(image_content).decode("utf-8")
+    
+    message = HumanMessage(
+        content=[
+            {"type": "text", "text": f"You are an expert technician for {appliance_type}. The user is reporting the following issue: {user_prompt}. Please analyze the attached image and provide step-by-step instructions to resolve the issue."},
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}},
+        ]
+    )
+    
+    # Use the existing llm instance
+    response = llm.invoke([message])
+    
+    return jsonify({
+        "response": response.content
+    })
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
 
 
 
